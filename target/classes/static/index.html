@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>sse demo</title>
+</head>
+
+<body>
+    <div>sse demo</div>
+
+    your user id : <input type="text" id="connectionUserId" value=""></input>
+    <button type="button" id="connectionBtn"> connection</button>
+
+    <div id="infoChat" class="">
+        your user id : <span id="userId"></span> <br />
+        user id <input type="text" id="toUserId"></input> <br />
+        msg : <input type="text" id="message"></input> <br />
+        <button type="button" id="sendBtn"> send </button>
+        <button type="button" id="closeBtn"> close </button>
+    </div>
+
+    <div id="result"></div>
+
+
+</body>
+
+</html>
+
+
+<script>
+    var defaultUrl = 'http://localhost:8080/sse';
+
+    const Http = new XMLHttpRequest();
+
+    var userId;
+
+    var connectiionBtn = document.querySelector("#connectionBtn");
+
+    var sendBtn = document.querySelector("#sendBtn");
+
+    var closeBtn = document.querySelector('#closeBtn')
+
+    connectiionBtn.onclick = () => {
+        userId = document.getElementById("connectionUserId").value;
+        console.log(userId);
+        let source = new EventSource(`${defaultUrl}/subscribe/${userId}`);
+        source.onmessage = (event) => {
+            text = document.getElementById('result').innerText;
+            text += '\n' + event.data;
+            document.getElementById('result').innerText = text;
+        };
+
+
+        source.onopen = (event) => {
+            text = document.getElementById('result').innerText;
+            text += '\n subscribe success';
+            console.log(event);
+            document.getElementById('result').innerText = text;
+            document.getElementById('userId').innerText = userId;
+        };
+
+        source.onerror = (err) => {
+            console.log(err);
+            document.getElementById('result').innerText = err;
+        }
+    }
+
+    sendBtn.onclick = async () => {
+        let toUserId = document.getElementById("toUserId").value;
+        let msg = document.getElementById("message").value;
+        const data = {
+            userId: toUserId,
+            msg: msg
+        };
+
+        const response = await fetch(`${defaultUrl}/send/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        response.text().then((data) => {
+            if (data != "Success") {
+                alert(data)
+            }
+        });
+
+    }
+
+
+    closeBtn.onclick = () => {
+        fetch(`${defaultUrl}/close/${userId}`).then((res) => {
+            alert('close success');
+        })
+    }
+
+
+
+</script>
