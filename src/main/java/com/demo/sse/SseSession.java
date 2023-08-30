@@ -27,6 +27,7 @@ public class SseSession {
         SseEmitter sseEmitter = sessionMap.get(sessionKey);
         if(sseEmitter != null){
             sseEmitter.complete();
+            return true;
         }
         return false;
     }
